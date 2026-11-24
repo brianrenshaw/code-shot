@@ -1,0 +1,47 @@
+name: CodeShot
+options:
+  deploymentTarget:
+    macOS: "14.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    CODE_SIGN_STYLE: Manual
+    CODE_SIGN_IDENTITY: "-"
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+targets:
+  CodeShot:
+    type: application
+    platform: macOS
+    sources:
+      - CodeShot
+      - path: LICENSE
+        buildPhase: resources
+    settings:
+      PRODUCT_NAME: CodeShot
+      PRODUCT_BUNDLE_IDENTIFIER: com.brianrenshaw.CodeShot
+      GENERATE_INFOPLIST_FILE: YES
+      ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+      INFOPLIST_KEY_LSUIElement: YES
+      INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.developer-tools
+      MARKETING_VERSION: "0.1.0"
+      CURRENT_PROJECT_VERSION: "7"
+  CodeShotTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - Tests
+      - CodeShot/Shortcuts.swift
+      - CodeShot/CaptureModel.swift
+      - CodeShot/CaptureNote.swift
+      - CodeShot/ScrollStitcher.swift
+    settings:
+      GENERATE_INFOPLIST_FILE: YES
+      PRODUCT_BUNDLE_IDENTIFIER: com.brianrenshaw.CodeShotTests
+schemes:
+  CodeShot:
+    build:
+      targets:
+        CodeShot: all
+    test:
+      targets: [CodeShotTests]
