@@ -16,12 +16,12 @@ CodeShot runs on Apple silicon and Intel Macs with macOS 14 or later. Open the d
 
 | Palette key | Action | Dedicated default shortcut |
 | --- | --- | --- |
-| 1 | Capture Area to Clipboard | Control–Option–S |
-| 2 | Capture Area with Note | Control–Option–N |
-| 3 | Scrolling Capture to Clipboard | Control–Option–L |
-| 4 | Capture Window to Clipboard | Control–Option–W |
-| 5 | Scrolling Capture with Note | Control–Option–Shift–L |
-| 6 | Capture Window with Note | Control–Option–Shift–W |
+| 1 | Capture Screen Area | Control–Option–S |
+| 2 | Capture Screen Area with a Note | Control–Option–N |
+| 3 | Scrolling Capture | Control–Option–L |
+| 4 | Scrolling Capture with a Note | Control–Option–Shift–L |
+| 5 | Capture Window | Control–Option–W |
+| 6 | Capture Window with a Note | Control–Option–Shift–W |
 
 In **Settings → Keyboard shortcuts**, click **Assign Everything the Same Shortcut** to use the current palette shortcut for all six actions. The palette opens immediately. Click the shortcut beside **Capture Palette** to record a different key combination for the whole group. **Use Individual Shortcuts** restores your previous bindings.
 

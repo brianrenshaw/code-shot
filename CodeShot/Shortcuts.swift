@@ -2,8 +2,11 @@ import AppKit
 import Carbon
 
 enum CaptureAction: UInt32, CaseIterable {
-    // Raw values are persisted in user shortcut preferences.
-    case area = 1, areaNote = 3, scrolling = 2, window = 4, scrollingNote = 6, windowNote = 7, palette = 5
+    // Declaration order is the palette order. Raw values are persisted shortcut IDs.
+    case area = 1, areaNote = 3
+    case scrolling = 2, scrollingNote = 6
+    case window = 4, windowNote = 7
+    case palette = 5
 
     static let captures = allCases.filter { $0 != .palette }
 
@@ -24,24 +27,19 @@ enum CaptureAction: UInt32, CaseIterable {
     }
 
     var title: String {
-        switch self {
-        case .area: return "Capture Area to Clipboard"
-        case .areaNote: return "Capture Area with Note"
-        case .scrolling: return "Scrolling Capture to Clipboard"
-        case .window: return "Capture Window to Clipboard"
-        case .scrollingNote: return "Scrolling Capture with Note"
-        case .windowNote: return "Capture Window with Note"
-        case .palette: return "Capture Palette"
-        }
+        guard self != .palette else { return "Capture Palette" }
+        return opensNote ? menuTitle : menuTitle + " to Clipboard"
     }
 
     var menuTitle: String {
+        let name: String
         switch kind {
-        case .area: return "Capture Area"
-        case .window: return "Capture Window"
-        case .scrolling: return "Scrolling Capture"
+        case .area: name = "Capture Screen Area"
+        case .scrolling: name = "Scrolling Capture"
+        case .window: name = "Capture Window"
         case nil: return "Open Capture Palette"
         }
+        return opensNote ? name + " with a Note" : name
     }
 
     var symbol: String {

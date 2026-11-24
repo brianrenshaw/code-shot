@@ -5,18 +5,16 @@ import SwiftUI
 @MainActor
 private final class PaletteSelection: ObservableObject {
     let actions: [CaptureAction]
-    let displayOrder: [CaptureAction]
     @Published var highlighted: CaptureAction
 
     init(_ actions: [CaptureAction]) {
         self.actions = actions
-        displayOrder = actions.filter { !$0.opensNote } + actions.filter(\.opensNote)
-        highlighted = displayOrder[0]
+        highlighted = actions[0]
     }
 
     func move(_ offset: Int) {
-        guard let index = displayOrder.firstIndex(of: highlighted) else { return }
-        highlighted = displayOrder[(index + offset + displayOrder.count) % displayOrder.count]
+        guard let index = actions.firstIndex(of: highlighted) else { return }
+        highlighted = actions[(index + offset + actions.count) % actions.count]
     }
 }
 
@@ -114,9 +112,9 @@ private struct PaletteView: View {
             .background(graphite)
 
             ViewThatFits(in: .vertical) {
-                sections.fixedSize(horizontal: false, vertical: true)
+                actionList.fixedSize(horizontal: false, vertical: true)
                 ScrollViewReader { proxy in
-                    ScrollView { sections }
+                    ScrollView { actionList }
                         .onChange(of: selection.highlighted) { _, action in proxy.scrollTo(action) }
                 }
             }
@@ -144,49 +142,36 @@ private struct PaletteView: View {
         }
     }
 
-    private var sections: some View {
-        VStack(spacing: 12) {
-            section("Copy to Clipboard", withNote: false)
-            section("With a Note", withNote: true)
-        }
-        .padding(12)
-    }
-
-    @ViewBuilder
-    private func section(_ title: String, withNote: Bool) -> some View {
-        let rows = selection.actions.enumerated().filter { $0.element.opensNote == withNote }
-        if !rows.isEmpty {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(title)
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(.secondary)
-                    .padding(.leading, 12).padding(.bottom, 3)
-                ForEach(rows, id: \.element) { index, action in
-                    let selected = action == selection.highlighted
-                    Button { choose(action) } label: {
-                        HStack(spacing: 13) {
-                            Image(systemName: action.symbol)
-                                .font(.system(size: 17, weight: .medium))
-                                .frame(width: 24)
-                                .foregroundStyle(selected ? (colorScheme == .light ? coral : selectionText) : Color.secondary)
-                            Text(action.menuTitle).font(.system(size: 16, weight: .medium))
-                            Spacer()
-                            Keycap(String(index + 1))
-                        }
-                        .foregroundStyle(selected ? selectionText : .primary)
-                        .padding(.horizontal, 12).frame(height: 40)
-                        .background(selected ? selectionFill : .clear, in: RoundedRectangle(cornerRadius: 8))
-                        .contentShape(Rectangle())
+    private var actionList: some View {
+        VStack(spacing: 2) {
+            ForEach(Array(selection.actions.enumerated()), id: \.element) { index, action in
+                let selected = action == selection.highlighted
+                let startsPair = index > 0 && selection.actions[index - 1].kind != action.kind
+                Button { choose(action) } label: {
+                    HStack(spacing: 13) {
+                        Image(systemName: action.symbol)
+                            .font(.system(size: 17, weight: .medium))
+                            .frame(width: 24)
+                            .foregroundStyle(selected ? (colorScheme == .light ? coral : selectionText) : Color.secondary)
+                        Text(action.menuTitle).font(.system(size: 16, weight: .medium))
+                        Spacer()
+                        Keycap(String(index + 1))
                     }
-                    .buttonStyle(.plain)
-                    .id(action)
-                    .onHover { entered in if entered { selection.highlighted = action } }
-                    .accessibilityLabel(action.title)
-                    .accessibilityValue("Key " + String(index + 1))
-                    .accessibilityAddTraits(selected ? .isSelected : [])
+                    .foregroundStyle(selected ? selectionText : .primary)
+                    .padding(.horizontal, 12).frame(height: 44)
+                    .background(selected ? selectionFill : .clear, in: RoundedRectangle(cornerRadius: 8))
+                    .contentShape(Rectangle())
                 }
+                .buttonStyle(.plain)
+                .onHover { entered in if entered { selection.highlighted = action } }
+                .accessibilityLabel(action.title)
+                .accessibilityValue("Key " + String(index + 1))
+                .accessibilityAddTraits(selected ? .isSelected : [])
+                .padding(.top, startsPair ? 7 : 0)
+                .id(action)
             }
         }
+        .padding(12)
     }
 }
 

@@ -59,11 +59,8 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWi
         } else {
             addCaptureCommand(.palette, to: menu)
             menu.addItem(.separator())
-            for withNote in [false, true] {
-                menu.addItem(.sectionHeader(title: withNote ? "With a Note" : "Copy to Clipboard"))
-                for action in CaptureAction.captures where action.opensNote == withNote {
-                    addCaptureCommand(action, to: menu)
-                }
+            for action in CaptureAction.captures {
+                addCaptureCommand(action, to: menu)
             }
         }
         if !notes.drafts.isEmpty && !busy {

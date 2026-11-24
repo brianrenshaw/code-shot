@@ -135,11 +135,16 @@ final class CaptureTests: XCTestCase {
         assigned[.window] = nil
         XCTAssertEqual(CaptureAction.choices(for: hyper, in: assigned), [.areaNote])
         assigned[.palette] = hyper
-        XCTAssertEqual(CaptureAction.choices(for: hyper, in: assigned), [.area, .areaNote, .scrolling, .window, .scrollingNote, .windowNote])
+        XCTAssertEqual(CaptureAction.choices(for: hyper, in: assigned), [.area, .areaNote, .scrolling, .scrollingNote, .window, .windowNote])
         assigned[.window] = sameKey
         assigned[.area] = hyper
         XCTAssertEqual(CaptureAction.choices(for: hyper, in: assigned), [.area, .areaNote, .window])
-        XCTAssertEqual(CaptureAction(rawValue: 2), .scrolling)
+        XCTAssertEqual(CaptureAction.captures.map(\.rawValue), [1, 3, 2, 6, 4, 7])
+        XCTAssertEqual(CaptureAction.captures.map(\.menuTitle), [
+            "Capture Screen Area", "Capture Screen Area with a Note",
+            "Scrolling Capture", "Scrolling Capture with a Note",
+            "Capture Window", "Capture Window with a Note"
+        ])
     }
 
     @MainActor
