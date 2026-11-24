@@ -39,14 +39,18 @@ final class CapturePalette: NSPanel {
         hasShadow = true
         hidesOnDeactivate = false
         collectionBehavior = [.moveToActiveSpace, .fullScreenAuxiliary]
-        let view = NSHostingView(rootView: PaletteView(selection: selection, choose: { [weak self] in self?.select($0) },
-                                                       dismiss: { [weak self] in self?.orderOut(nil) }))
-        let size = view.fittingSize
-        contentView = view
+        let screen = NSScreen.screens.first { $0.frame.contains(NSEvent.mouseLocation) } ?? NSScreen.main
+        let visible = screen?.visibleFrame ?? NSRect(x: 0, y: 0, width: 1024, height: 768)
+        let view = PaletteView(selection: selection, width: min(520, visible.width - 24),
+                               maxHeight: visible.height - 24,
+                               choose: { [weak self] in self?.select($0) },
+                               dismiss: { [weak self] in self?.orderOut(nil) })
+        let host = NSHostingView(rootView: view)
+        let size = host.fittingSize
+        contentView = host
         setContentSize(size)
-        if let visible = NSScreen.screens.first(where: { $0.frame.contains(NSEvent.mouseLocation) })?.visibleFrame {
-            setFrameOrigin(CGPoint(x: visible.midX - size.width / 2, y: visible.midY - size.height / 2))
-        }
+        setFrameOrigin(CGPoint(x: (visible.midX - size.width / 2).rounded(),
+                               y: (visible.midY - size.height / 2).rounded()))
     }
 
     private func select(_ action: CaptureAction) {
@@ -83,38 +87,69 @@ final class CapturePalette: NSPanel {
 
 private struct PaletteView: View {
     @ObservedObject var selection: PaletteSelection
+    @Environment(\.colorScheme) private var colorScheme
+    let width: CGFloat
+    let maxHeight: CGFloat
     let choose: (CaptureAction) -> Void
     let dismiss: () -> Void
 
+    private let graphite = Color(red: 0.10, green: 0.13, blue: 0.15)
+    private let coral = Color(red: 1, green: 0.51, blue: 0.35)
+    private var selectionFill: Color { colorScheme == .dark ? Color(white: 0.90) : graphite }
+    private var selectionText: Color { colorScheme == .dark ? graphite : .white }
+
     var body: some View {
         VStack(spacing: 0) {
-            HStack(spacing: 10) {
-                Image(systemName: "command").font(.system(size: 16, weight: .semibold))
-                    .foregroundStyle(Color.accentColor).frame(width: 30, height: 30)
-                    .background(Color.accentColor.opacity(0.12), in: RoundedRectangle(cornerRadius: 8))
-                Text("Capture Palette").font(.system(size: 16, weight: .semibold))
+            HStack(spacing: 12) {
+                Image(nsImage: NSApp.applicationIconImage)
+                    .resizable().interpolation(.high).frame(width: 42, height: 42)
+                    .accessibilityHidden(true)
+                Text("Capture Palette")
+                    .font(.system(size: 22, weight: .semibold)).foregroundStyle(.white)
                 Spacer()
-                Button(action: dismiss) { Keycap("esc") }
+                Button(action: dismiss) { Keycap("esc").foregroundStyle(.white) }
                     .buttonStyle(.plain).accessibilityLabel("Close palette")
-            }.padding(.horizontal, 16).padding(.vertical, 13)
+            }
+            .padding(.leading, 16).padding(.trailing, 20).padding(.vertical, 12)
+            .background(graphite)
+
+            ViewThatFits(in: .vertical) {
+                sections.fixedSize(horizontal: false, vertical: true)
+                ScrollViewReader { proxy in
+                    ScrollView { sections }
+                        .onChange(of: selection.highlighted) { _, action in proxy.scrollTo(action) }
+                }
+            }
             Divider()
-            VStack(spacing: 8) {
-                section("Copy to Clipboard", withNote: false)
-                section("With a Note", withNote: true)
-            }.padding(8)
-            Divider()
-            HStack(spacing: 5) {
-                Keycap("↑"); Keycap("↓")
+            HStack(spacing: 6) {
+                Keycap("↑")
+                Keycap("↓")
                 Text("Navigate")
                 Spacer()
                 Keycap("↩")
                 Text("Capture")
             }
-            .font(.caption).foregroundStyle(.secondary).padding(.horizontal, 16).padding(.vertical, 9)
+            .font(.system(size: 12, weight: .medium))
+            .foregroundStyle(.secondary)
+            .padding(.horizontal, 20).padding(.vertical, 9)
         }
-        .frame(width: 350)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 14))
-        .overlay { RoundedRectangle(cornerRadius: 14).strokeBorder(.separator).allowsHitTesting(false) }
+        .frame(width: width)
+        .frame(maxHeight: maxHeight)
+        .background(Color(nsColor: .windowBackgroundColor))
+        .clipShape(RoundedRectangle(cornerRadius: 17, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 17, style: .continuous)
+                .strokeBorder(Color.primary.opacity(0.23), lineWidth: 1)
+                .allowsHitTesting(false)
+        }
+    }
+
+    private var sections: some View {
+        VStack(spacing: 12) {
+            section("Copy to Clipboard", withNote: false)
+            section("With a Note", withNote: true)
+        }
+        .padding(12)
     }
 
     @ViewBuilder
@@ -122,23 +157,29 @@ private struct PaletteView: View {
         let rows = selection.actions.enumerated().filter { $0.element.opensNote == withNote }
         if !rows.isEmpty {
             VStack(alignment: .leading, spacing: 2) {
-                Text(title).font(.caption.weight(.semibold)).foregroundStyle(.secondary)
-                    .padding(.leading, 10).padding(.top, 4).padding(.bottom, 2)
+                Text(title)
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(.secondary)
+                    .padding(.leading, 12).padding(.bottom, 3)
                 ForEach(rows, id: \.element) { index, action in
                     let selected = action == selection.highlighted
                     Button { choose(action) } label: {
-                        HStack(spacing: 10) {
-                            Image(systemName: action.symbol).frame(width: 20)
-                                .foregroundStyle(selected ? Color.accentColor : .secondary)
-                            Text(action.menuTitle).font(.system(size: 13, weight: selected ? .semibold : .regular))
+                        HStack(spacing: 13) {
+                            Image(systemName: action.symbol)
+                                .font(.system(size: 17, weight: .medium))
+                                .frame(width: 24)
+                                .foregroundStyle(selected ? (colorScheme == .light ? coral : selectionText) : Color.secondary)
+                            Text(action.menuTitle).font(.system(size: 16, weight: .medium))
                             Spacer()
                             Keycap(String(index + 1))
                         }
-                        .padding(.horizontal, 10).frame(height: 32)
-                        .background(selected ? Color.accentColor.opacity(0.14) : .clear, in: RoundedRectangle(cornerRadius: 6))
+                        .foregroundStyle(selected ? selectionText : .primary)
+                        .padding(.horizontal, 12).frame(height: 40)
+                        .background(selected ? selectionFill : .clear, in: RoundedRectangle(cornerRadius: 8))
                         .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
+                    .id(action)
                     .onHover { entered in if entered { selection.highlighted = action } }
                     .accessibilityLabel(action.title)
                     .accessibilityValue("Key " + String(index + 1))
@@ -153,9 +194,10 @@ private struct Keycap: View {
     let key: String
     init(_ key: String) { self.key = key }
     var body: some View {
-        Text(verbatim: key).font(.system(size: 11, weight: .medium, design: .monospaced))
-            .foregroundStyle(.secondary).padding(.horizontal, 4).frame(minWidth: 20, minHeight: 18)
-            .background(.background.opacity(0.6), in: RoundedRectangle(cornerRadius: 4))
-            .overlay { RoundedRectangle(cornerRadius: 4).strokeBorder(.separator, lineWidth: 0.5) }
+        Text(verbatim: key)
+            .font(.system(size: 12, weight: .semibold, design: .monospaced))
+            .padding(.horizontal, 5).frame(minWidth: 25, minHeight: 22)
+            .background(.foreground.opacity(0.08), in: RoundedRectangle(cornerRadius: 5))
+            .overlay { RoundedRectangle(cornerRadius: 5).strokeBorder(.foreground.opacity(0.22)) }
     }
 }
