@@ -275,3 +275,41 @@ final class Shortcuts: ObservableObject {
         bindings = next
     }
 }
+
+private let sessionSignature: OSType = 0x43735373 // CsSs
+
+/// A global shortcut that exists only while it's retained, such as ⌘↩ to finish a scrolling capture
+/// while another app stays frontmost. Uses its own signature so the capture handler passes it through.
+final class SessionHotKey {
+    private var ref: EventHotKeyRef?
+    private var handler: EventHandlerRef?
+    private let action: () -> Void
+
+    init?(key: Int, modifiers: Int, action: @escaping () -> Void) {
+        self.action = action
+        var spec = EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyPressed))
+        let installed = InstallEventHandler(GetApplicationEventTarget(), { _, event, info in
+            guard let info, let event else { return OSStatus(eventNotHandledErr) }
+            var id = EventHotKeyID()
+            let result = GetEventParameter(event, EventParamName(kEventParamDirectObject),
+                                           EventParamType(typeEventHotKeyID), nil,
+                                           MemoryLayout.size(ofValue: id), nil, &id)
+            guard result == noErr, id.signature == sessionSignature else { return OSStatus(eventNotHandledErr) }
+            let owner = Unmanaged<SessionHotKey>.fromOpaque(info).takeUnretainedValue()
+            DispatchQueue.main.async { owner.action() }
+            return noErr
+        }, 1, &spec, Unmanaged.passUnretained(self).toOpaque(), &handler)
+        guard installed == noErr else { return nil }
+        let id = EventHotKeyID(signature: sessionSignature, id: 1)
+        guard RegisterEventHotKey(UInt32(key), UInt32(modifiers), id, GetApplicationEventTarget(), 0, &ref) == noErr,
+              ref != nil else {
+            if let handler { RemoveEventHandler(handler) }
+            return nil
+        }
+    }
+
+    deinit {
+        if let ref { UnregisterEventHotKey(ref) }
+        if let handler { RemoveEventHandler(handler) }
+    }
+}

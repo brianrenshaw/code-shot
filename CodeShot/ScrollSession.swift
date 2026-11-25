@@ -1,4 +1,5 @@
 import AppKit
+import Carbon
 import SwiftUI
 
 @MainActor
@@ -15,6 +16,7 @@ final class ScrollSession: ObservableObject {
     private let completion: (Result<CGImage, Error>?) -> Void
     private var panel: NSPanel?
     private var outline: NSPanel?
+    private var finishKey: SessionHotKey?
     private var loop: Task<Void, Never>?
     private var quiet = 0
     private var expectedShift: Int?
@@ -59,6 +61,9 @@ final class ScrollSession: ObservableObject {
         controls.contentView = NSHostingView(rootView: ScrollControls(session: self))
         controls.orderFrontRegardless()
         panel = controls
+        finishKey = SessionHotKey(key: kVK_Return, modifiers: cmdKey) { [weak self] in
+            MainActor.assumeIsolated { self?.finish() }
+        }
         loop = Task { [weak self] in await self?.run() }
     }
 
@@ -112,6 +117,7 @@ final class ScrollSession: ObservableObject {
         ended = true
         loop?.cancel()
         loop = nil
+        finishKey = nil
         panel?.orderOut(nil)
         panel = nil
         outline?.orderOut(nil)
@@ -139,7 +145,7 @@ final class ScrollSession: ObservableObject {
                             quiet += 1
                             if quiet >= 8 {
                                 playing = false
-                                status = "No more movement. Finish or scroll manually."
+                                status = "Reached the end. Press ⌘↩ to finish, or keep scrolling."
                             }
                         }
                     case .lostOverlap:
@@ -151,7 +157,7 @@ final class ScrollSession: ObservableObject {
                     case .limit:
                         frozen = true
                         playing = false
-                        status = "Image limit reached. Finish to save."
+                        status = "Image limit reached. Press ⌘↩ to finish."
                     }
                 } catch {
                     guard !ended else { return }
@@ -206,17 +212,36 @@ final class ScrollSession: ObservableObject {
 private struct ScrollControls: View {
     @ObservedObject var session: ScrollSession
     var body: some View {
-        VStack(alignment: .leading, spacing: 5) {
-            HStack(spacing: 10) {
+        VStack(spacing: 4) {
+            HStack(spacing: 8) {
+                HStack(spacing: 8) {
+                    Button("Cancel") { session.cancel() }
+                    Text("\(session.height) px").font(.caption.monospacedDigit()).foregroundStyle(.secondary)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
                 Button { session.toggleAutoScroll() } label: {
-                    Label(session.playing ? "Pause" : "Auto-scroll", systemImage: session.playing ? "pause.fill" : "play.fill")
-                }.disabled(session.frozen || session.finishing)
-                Text("\(session.height) px").font(.caption.monospacedDigit()).foregroundStyle(.secondary)
-                Spacer()
-                Button("Cancel") { session.cancel() }
-                Button("Finish") { session.finish() }.buttonStyle(.borderedProminent).disabled(session.finishing)
+                    Image(systemName: session.playing ? "pause.fill" : "play.fill")
+                        .font(.system(size: 13, weight: .semibold))
+                        .frame(width: 22, height: 18)
+                }
+                .controlSize(.large)
+                .disabled(session.frozen || session.finishing)
+                .accessibilityLabel(session.playing ? "Pause Auto-Scroll" : "Auto-Scroll")
+                .help(session.playing ? "Pause auto-scroll" : "Auto-scroll down the selection")
+                Button { session.finish() } label: {
+                    HStack(spacing: 5) {
+                        Text("Finish")
+                        Text("⌘↩").opacity(0.7)
+                    }
+                }
+                .buttonStyle(.borderedProminent)
+                .disabled(session.finishing)
+                .accessibilityLabel("Finish")
+                .help("Finish the capture (⌘↩)")
+                .frame(maxWidth: .infinity, alignment: .trailing)
             }
             Text(session.status).font(.caption).foregroundStyle(.secondary).lineLimit(2)
+                .multilineTextAlignment(.center)
         }
         .padding(.horizontal, 12).padding(.vertical, 7)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
