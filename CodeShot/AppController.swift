@@ -21,6 +21,7 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWi
     private var statusItem: NSStatusItem!
     private var settingsWindow: NSWindow?
     private let notes = CaptureNotes()
+    private let permissions = PermissionGuide()
     private var palette: CapturePalette?
     private var noteWindow: NoteWindow?
     private var scrolling: ScrollSession?
@@ -140,7 +141,8 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWi
     @objc private func openSettings() {
         guard !busy else { return }
         if settingsWindow == nil {
-            let view = SettingsView(prefs: preferences, shortcuts: shortcuts) { [weak self] action in
+            let view = SettingsView(prefs: preferences, shortcuts: shortcuts,
+                                    requestPermission: { [weak self] in self?.permissions.request($0) }) { [weak self] action in
                 guard let self else { return }
                 if action == .palette { self.dispatch(CaptureAction.captures) }
                 else { self.trigger(action) }
@@ -173,14 +175,8 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWi
     private func trigger(_ action: CaptureAction, returnApp: NSRunningApplication? = NSWorkspace.shared.frontmostApplication) {
         guard !busy, let kind = action.kind else { return }
         shortcuts.stopListening()
-        guard CGPreflightScreenCaptureAccess() || CGRequestScreenCaptureAccess() else {
-            let alert = NSAlert()
-            alert.messageText = "Allow screen capture"
-            alert.informativeText = "Enable CodeShot in Screen Recording in System Settings, then try capturing again. If macOS asks you to reopen CodeShot, do so first."
-            alert.addButton(withTitle: "Open System Settings")
-            alert.addButton(withTitle: "Cancel")
-            NSApp.activate(ignoringOtherApps: true)
-            if alert.runModal() == .alertFirstButtonReturn { PrivacySettings.open("ScreenCapture") }
+        guard Permission.screenRecording.granted else {
+            permissions.request(.screenRecording)
             return
         }
         busy = true

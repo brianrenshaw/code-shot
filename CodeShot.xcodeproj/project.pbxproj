@@ -22,6 +22,7 @@
 		B586AFDC0852C7A01B2E4DAF /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 89F110C9A331429C79E96918 /* Assets.xcassets */; };
 		C75207F40D9806B649E9643D /* ScrollSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 465B3573A47D5329161AF79D /* ScrollSession.swift */; };
 		CEB6F203FB551A25136A7940 /* Shortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B6F4E78DA1DB3756AF85C13 /* Shortcuts.swift */; };
+		D424D54D3C46079F8F742B01 /* PermissionGuide.swift in Sources */ = {isa = PBXBuildFile; fileRef = B51102353182A368F6E48534 /* PermissionGuide.swift */; };
 		D5D228FD8C67D00888280BBC /* CaptureNote.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0261185EB6831B54ABCB501C /* CaptureNote.swift */; };
 		D8F211895F596A92BC60DDC8 /* ScrollStitcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A9C3956E18D8B99714D6599 /* ScrollStitcher.swift */; };
 		F77D39D4AAE6BA864567852E /* CaptureNote.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0261185EB6831B54ABCB501C /* CaptureNote.swift */; };
@@ -38,6 +39,7 @@
 		89F110C9A331429C79E96918 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		8A9C3956E18D8B99714D6599 /* ScrollStitcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrollStitcher.swift; sourceTree = "<group>"; };
 		9B6184B7F7C34541C2A0E166 /* CaptureNoteTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureNoteTests.swift; sourceTree = "<group>"; };
+		B51102353182A368F6E48534 /* PermissionGuide.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionGuide.swift; sourceTree = "<group>"; };
 		C35E8A2DDF0E360E617DF57B /* CaptureSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureSource.swift; sourceTree = "<group>"; };
 		D089D7D868ED151612D44C73 /* CodeShotTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CodeShotTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D8AC8537E307DA9D2A4A5777 /* Views.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views.swift; sourceTree = "<group>"; };
@@ -56,6 +58,7 @@
 				0261185EB6831B54ABCB501C /* CaptureNote.swift */,
 				F4FAF82AA6B199E08FF0CD23 /* CaptureOverlays.swift */,
 				C35E8A2DDF0E360E617DF57B /* CaptureSource.swift */,
+				B51102353182A368F6E48534 /* PermissionGuide.swift */,
 				E51A4C3F4DDE62E39A8013BB /* RegionPicker.swift */,
 				465B3573A47D5329161AF79D /* ScrollSession.swift */,
 				8A9C3956E18D8B99714D6599 /* ScrollStitcher.swift */,
@@ -190,6 +193,7 @@
 				F77D39D4AAE6BA864567852E /* CaptureNote.swift in Sources */,
 				9DF7394462290F31341CB60A /* CaptureOverlays.swift in Sources */,
 				3072B5A8B45378F446D52316 /* CaptureSource.swift in Sources */,
+				D424D54D3C46079F8F742B01 /* PermissionGuide.swift in Sources */,
 				57DEA27D2CF5FC750991C372 /* RegionPicker.swift in Sources */,
 				C75207F40D9806B649E9643D /* ScrollSession.swift in Sources */,
 				D8F211895F596A92BC60DDC8 /* ScrollStitcher.swift in Sources */,
@@ -285,7 +289,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 10;
+				CURRENT_PROJECT_VERSION = 12;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				INFOPLIST_KEY_LSUIElement = YES;
@@ -293,7 +297,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.1.3;
+				MARKETING_VERSION = 0.1.4;
 				PRODUCT_BUNDLE_IDENTIFIER = com.brianrenshaw.CodeShot;
 				PRODUCT_NAME = CodeShot;
 				SDKROOT = macosx;
@@ -321,7 +325,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 10;
+				CURRENT_PROJECT_VERSION = 12;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				INFOPLIST_KEY_LSUIElement = YES;
@@ -329,7 +333,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.1.3;
+				MARKETING_VERSION = 0.1.4;
 				PRODUCT_BUNDLE_IDENTIFIER = com.brianrenshaw.CodeShot;
 				PRODUCT_NAME = CodeShot;
 				SDKROOT = macosx;

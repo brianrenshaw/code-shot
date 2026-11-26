@@ -146,16 +146,3 @@ private enum BrowserURL {
         return url.absoluteString
     }
 }
-
-enum PrivacySettings {
-    static func open(_ pane: String) {
-        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_" + pane) {
-            NSWorkspace.shared.open(url)
-        }
-    }
-
-    static func requestAccessibility() {
-        let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true]
-        _ = AXIsProcessTrustedWithOptions(options as CFDictionary)
-    }
-}

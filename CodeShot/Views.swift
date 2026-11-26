@@ -32,6 +32,7 @@ final class Preferences: ObservableObject {
 struct SettingsView: View {
     @ObservedObject var prefs: Preferences
     @ObservedObject var shortcuts: Shortcuts
+    let requestPermission: (Permission) -> Void
     let capture: (CaptureAction) -> Void
     @State private var showIndividual = false
     @State private var screenAccess = CGPreflightScreenCaptureAccess()
@@ -84,11 +85,10 @@ struct SettingsView: View {
             }
             Section("Permissions") {
                 permission("Screen Recording", detail: "Needed to capture the selected area.", granted: screenAccess) {
-                    if !CGRequestScreenCaptureAccess() { PrivacySettings.open("ScreenCapture") }
+                    requestPermission(.screenRecording)
                 }
                 permission("Accessibility", detail: "Optional for auto-scroll and browser URLs.", granted: accessibility) {
-                    PrivacySettings.requestAccessibility()
-                    if !AXIsProcessTrusted() { PrivacySettings.open("Accessibility") }
+                    requestPermission(.accessibility)
                 }
             }
         }
