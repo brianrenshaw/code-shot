@@ -1,6 +1,7 @@
 import AppKit
 import Combine
 import ImageIO
+import Sparkle
 import SwiftUI
 
 final class Preferences: ObservableObject {
@@ -32,9 +33,11 @@ final class Preferences: ObservableObject {
 struct SettingsView: View {
     @ObservedObject var prefs: Preferences
     @ObservedObject var shortcuts: Shortcuts
+    let updater: SPUUpdater
     let requestPermission: (Permission) -> Void
     let capture: (CaptureAction) -> Void
     @State private var showIndividual = false
+    @State private var automaticallyChecksForUpdates = false
     @State private var screenAccess = CGPreflightScreenCaptureAccess()
     @State private var accessibility = AXIsProcessTrusted()
     private let timer = Timer.publish(every: 2, on: .main, in: .common).autoconnect()
@@ -90,6 +93,13 @@ struct SettingsView: View {
                 permission("Accessibility", detail: "Optional for auto-scroll and browser URLs.", granted: accessibility) {
                     requestPermission(.accessibility)
                 }
+            }
+            Section("Updates") {
+                Toggle("Automatically check for updates", isOn: Binding(
+                    get: { automaticallyChecksForUpdates },
+                    set: { updater.automaticallyChecksForUpdates = $0 }
+                ))
+                .onReceive(updater.publisher(for: \.automaticallyChecksForUpdates)) { automaticallyChecksForUpdates = $0 }
             }
         }
         .formStyle(.grouped)

@@ -6,7 +6,11 @@ Capture an area, a window, or a scrolling pane on your Mac. Paste the screenshot
 
 ## Install
 
-CodeShot runs on Apple silicon and Intel Macs with macOS 14 or later. Open the disk image, drag CodeShot to Applications, and launch it. To update, quit CodeShot from its menu bar, download the latest release, and replace the app in Applications.
+CodeShot runs on Apple silicon and Intel Macs with macOS 14 or later. Open the disk image, drag CodeShot to Applications, and launch it.
+
+Starting with 0.1.5, choose **Check for Updates…** from CodeShot’s menu bar icon. Turn on **Automatically check for updates** in Settings to have CodeShot check in the background. When an update is available, choose **Update to CodeShot…** from the menu.
+
+If you have 0.1.4 or earlier, quit CodeShot and replace the app with the latest download once to get the built-in updater.
 
 ## Use CodeShot
 
@@ -59,7 +63,7 @@ Keep consecutive views overlapping by more than half their height. If CodeShot l
 
 - **Screen Recording** lets CodeShot capture the selected display area. Some macOS versions label this **Screen & System Audio Recording**. CodeShot captures still images only.
 - **Accessibility** lets CodeShot send scroll events to the selected app and read an available browser URL. Region capture, manual scrolling, and notes work with Screen Recording alone.
-- Screenshots are written locally. The app has no network service, account, telemetry, or third-party dependencies.
+- Screenshots and notes stay on your Mac. CodeShot uses Sparkle to check GitHub Releases for updates.
 
 ## Build
 
@@ -83,22 +87,23 @@ The checked-in project builds directly. If changing targets or source groups, up
 
 ## Publish a release
 
-1. Set the marketing version and build number in `project.yml`, regenerate the project with `xcodegen generate`, run the tests, then commit and push to `main`.
-2. On a Mac with your Developer ID Application certificate and a configured notarytool keychain profile, run the packaging script. It builds a universal app, signs it with the hardened runtime, and notarizes and staples the app and disk image.
+1. Increase the marketing version and build number in `project.yml`. Sparkle compares build numbers. Regenerate the project with `xcodegen generate`, run the tests, then commit and push to `main`.
+2. On the release Mac, use the Developer ID Application certificate, a configured notarytool profile, and the existing Sparkle private key in Keychain under the account `com.brianrenshaw.CodeShot`. Keep a secure backup of this key for future releases. The script signs and notarizes the universal app and DMG, generates the appcast, and verifies both Sparkle signatures.
 
    ```sh
    SIGNING_IDENTITY="Developer ID Application: Your Name (TEAMID)" \
    NOTARY_PROFILE="your-keychain-profile" ./Tools/package-release.sh
    ```
 
-3. Tag the tested commit and publish the disk image with the filename `CodeShot.dmg`. Substitute the version you built below and supply release notes for that version.
+3. Tag the tested commit. Attach both files to the same draft release before publishing it as latest. The app checks the latest release’s `appcast.xml`, which points to the DMG for that specific tag.
 
    ```sh
-   version=0.1.0
+   version=0.1.5
    git tag "v$version"
    git push origin "v$version"
-   gh release create "v$version" "dist/$version/CodeShot.dmg" --verify-tag --latest \
+   gh release create "v$version" "dist/$version/CodeShot.dmg" "dist/$version/appcast.xml" --verify-tag --draft \
      --title "CodeShot $version" --notes-file /path/to/release-notes.md
+   gh release edit "v$version" --draft=false --latest
    ```
 
 The website download follows the latest GitHub Release automatically. Previous versions remain available on the releases page.

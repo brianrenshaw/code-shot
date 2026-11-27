@@ -1,5 +1,5 @@
 #!/bin/bash
-# Produce a verified universal DMG for the checked-out CodeShot version.
+# Produce a verified universal DMG and a signed Sparkle feed for GitHub Releases.
 set -euo pipefail
 : "${SIGNING_IDENTITY:?Set SIGNING_IDENTITY to your Developer ID Application certificate name}"
 : "${NOTARY_PROFILE:?Set NOTARY_PROFILE to your notarytool keychain profile name}"
@@ -17,11 +17,27 @@ xcodebuild -project "$root/CodeShot.xcodeproj" -scheme CodeShot -configuration R
 app="$work/DerivedData/Build/Products/Release/CodeShot.app"
 version="$(plutil -extract CFBundleShortVersionString raw "$app/Contents/Info.plist")"
 output="$root/dist/$version"
-dmg="$work/CodeShot.dmg"
+mkdir "$work/release"
+dmg="$work/release/CodeShot.dmg"
+sparkle="$app/Contents/Frameworks/Sparkle.framework"
+tools="$work/DerivedData/SourcePackages/artifacts/sparkle/Sparkle/bin"
+account=com.brianrenshaw.CodeShot
+public_key="$("$tools/generate_keys" --account "$account" -p)"
+if [[ "$(plutil -extract SUPublicEDKey raw "$app/Contents/Info.plist")" != "$public_key" ]]; then
+  echo "The CodeShot Sparkle key in Keychain must match the app's SUPublicEDKey." >&2
+  exit 1
+fi
 for arch in arm64 x86_64; do
   lipo "$app/Contents/MacOS/CodeShot" -verify_arch "$arch"
+  lipo "$sparkle/Sparkle" -verify_arch "$arch"
 done
-codesign --force --options runtime --timestamp --sign "$SIGNING_IDENTITY" "$app"
+sign=(codesign --force --options runtime --timestamp --sign "$SIGNING_IDENTITY")
+"${sign[@]}" "$sparkle/Versions/B/XPCServices/Installer.xpc"
+"${sign[@]}" --preserve-metadata=entitlements "$sparkle/Versions/B/XPCServices/Downloader.xpc"
+"${sign[@]}" "$sparkle/Versions/B/Autoupdate"
+"${sign[@]}" "$sparkle/Versions/B/Updater.app"
+"${sign[@]}" "$sparkle"
+"${sign[@]}" "$app"
 codesign --verify --deep --strict "$app"
 
 # Staple both tickets so an offline Mac can verify the copied app as well as the installer.
@@ -40,6 +56,14 @@ xcrun notarytool submit "$dmg" --keychain-profile "$NOTARY_PROFILE" --wait
 xcrun stapler staple "$dmg"
 xcrun stapler validate "$dmg"
 spctl --assess --type open --context context:primary-signature --verbose "$dmg"
+releases="https://github.com/brianrenshaw/code-shot/releases"
+"$tools/generate_appcast" --account "$account" --maximum-deltas 0 \
+  --download-url-prefix "$releases/download/v$version/" \
+  --full-release-notes-url "$releases/tag/v$version" "$work/release"
+feed="$work/release/appcast.xml"
+"$tools/sign_update" --account "$account" --verify "$feed"
+signature="$(xmllint --xpath 'string(//enclosure/@*[local-name()="edSignature"])' "$feed")"
+"$tools/sign_update" --account "$account" --verify "$dmg" "$signature"
 mkdir -p "$output"
-mv "$dmg" "$output/CodeShot.dmg"
-echo "Verified $output/CodeShot.dmg"
+mv "$dmg" "$feed" "$output/"
+echo "Verified $output/CodeShot.dmg and $output/appcast.xml"

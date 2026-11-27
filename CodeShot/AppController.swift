@@ -1,4 +1,5 @@
 import AppKit
+import Sparkle
 import SwiftUI
 
 @main
@@ -14,7 +15,7 @@ enum CodeShotMain {
 }
 
 @MainActor
-final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWindowDelegate {
+final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWindowDelegate, @preconcurrency SPUStandardUserDriverDelegate {
     private let preferences = Preferences()
     private let shortcuts = Shortcuts()
     private let picker = RegionPicker()
@@ -26,6 +27,8 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWi
     private var noteWindow: NoteWindow?
     private var scrolling: ScrollSession?
     private var busy = false
+    private lazy var updates = SPUStandardUpdaterController(startingUpdater: false, updaterDelegate: nil, userDriverDelegate: self)
+    private var availableUpdate: String?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
@@ -35,6 +38,7 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWi
         menu.delegate = self
         menu.autoenablesItems = false
         statusItem.menu = menu
+        updates.startUpdater()
         shortcuts.perform = { [weak self] actions in self?.dispatch(actions) }
         shortcuts.start()
         menuNeedsUpdate(menu)
@@ -78,7 +82,32 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWi
         guard menu === statusItem?.menu else { return }
         menu.addItem(.separator())
         item("Settings…", #selector(openSettings), menu, key: ",").isEnabled = !busy
+        addUpdateCommand(to: menu)
         item("Quit CodeShot", #selector(quit), menu, key: "q")
+    }
+
+    private func addUpdateCommand(to menu: NSMenu) {
+        let title = availableUpdate.map { "Update to CodeShot " + $0 + "…" } ?? "Check for Updates…"
+        let command = menu.addItem(withTitle: title, action: #selector(SPUStandardUpdaterController.checkForUpdates(_:)), keyEquivalent: "")
+        command.target = updates
+        command.isEnabled = updates.updater.canCheckForUpdates
+    }
+
+    var supportsGentleScheduledUpdateReminders: Bool { true }
+
+    func standardUserDriverShouldHandleShowingScheduledUpdate(_ update: SUAppcastItem, andInImmediateFocus immediateFocus: Bool) -> Bool {
+        false // Offer background updates from the status menu without interrupting a capture.
+    }
+
+    func standardUserDriverWillHandleShowingUpdate(_ handleShowingUpdate: Bool, forUpdate update: SUAppcastItem, state: SPUUserUpdateState) {
+        guard !state.userInitiated else { return }
+        availableUpdate = update.displayVersionString
+        statusItem.button?.toolTip = "CodeShot " + update.displayVersionString + " is available"
+    }
+
+    func standardUserDriverWillFinishUpdateSession() {
+        availableUpdate = nil
+        statusItem.button?.toolTip = "CodeShot"
     }
 
     private func addCaptureCommand(_ action: CaptureAction, to menu: NSMenu) {
@@ -106,6 +135,7 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWi
         let main = NSMenu()
         let appMenu = NSMenu()
         item("Settings…", #selector(openSettings), appMenu, key: ",")
+        addUpdateCommand(to: appMenu)
         item("Quit CodeShot", #selector(quit), appMenu, key: "q")
         let appItem = NSMenuItem()
         appItem.submenu = appMenu
@@ -141,7 +171,7 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWi
     @objc private func openSettings() {
         guard !busy else { return }
         if settingsWindow == nil {
-            let view = SettingsView(prefs: preferences, shortcuts: shortcuts,
+            let view = SettingsView(prefs: preferences, shortcuts: shortcuts, updater: updates.updater,
                                     requestPermission: { [weak self] in self?.permissions.request($0) }) { [weak self] action in
                 guard let self else { return }
                 if action == .palette { self.dispatch(CaptureAction.captures) }

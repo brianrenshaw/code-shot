@@ -3,6 +3,10 @@ options:
   deploymentTarget:
     macOS: "14.0"
   createIntermediateGroups: true
+packages:
+  Sparkle:
+    url: https://github.com/sparkle-project/Sparkle
+    exactVersion: 2.10.1
 settings:
   base:
     SWIFT_VERSION: "5.0"
@@ -13,6 +17,19 @@ targets:
   CodeShot:
     type: application
     platform: macOS
+    dependencies:
+      - package: Sparkle
+    info:
+      path: CodeShot/Info.plist
+      properties:
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        LSUIElement: true
+        LSApplicationCategoryType: public.app-category.developer-tools
+        SUFeedURL: https://github.com/brianrenshaw/code-shot/releases/latest/download/appcast.xml
+        SUPublicEDKey: A8MAV7/u4f2SYkkiCP1iz0UkEXN76Y78rVJzMQeDLjA=
+        SUVerifyUpdateBeforeExtraction: true
+        SURequireSignedFeed: true
     sources:
       - CodeShot
       - path: LICENSE
@@ -20,12 +37,10 @@ targets:
     settings:
       PRODUCT_NAME: CodeShot
       PRODUCT_BUNDLE_IDENTIFIER: com.brianrenshaw.CodeShot
-      GENERATE_INFOPLIST_FILE: YES
+      ENABLE_HARDENED_RUNTIME: YES
       ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
-      INFOPLIST_KEY_LSUIElement: YES
-      INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.developer-tools
-      MARKETING_VERSION: "0.1.4"
-      CURRENT_PROJECT_VERSION: "12"
+      MARKETING_VERSION: "0.1.5"
+      CURRENT_PROJECT_VERSION: "13"
   CodeShotTests:
     type: bundle.unit-test
     platform: macOS

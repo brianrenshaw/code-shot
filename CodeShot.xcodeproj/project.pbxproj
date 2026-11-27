@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		0650151F05DDB909481BA155 /* AppController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F567E8409416416AEBABF400 /* AppController.swift */; };
 		09BF1CFFCF4198EC1300DB6C /* Shortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B6F4E78DA1DB3756AF85C13 /* Shortcuts.swift */; };
+		13DDCD58E7B9D5B8EE231316 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 8C9B22340F6765FB442152D4 /* Sparkle */; };
 		20657D76AF5E4781FEEF9FE8 /* CaptureModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27E9117579996C0769348D18 /* CaptureModel.swift */; };
 		2DB0E16A4BFD7071982B87D0 /* ScrollStitcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A9C3956E18D8B99714D6599 /* ScrollStitcher.swift */; };
 		3072B5A8B45378F446D52316 /* CaptureSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = C35E8A2DDF0E360E617DF57B /* CaptureSource.swift */; };
@@ -35,6 +36,7 @@
 		374405C8EE54AAC5A0F92FC9 /* CodeShot.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CodeShot.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3E92E7797DAAC536DD10B0A4 /* LICENSE */ = {isa = PBXFileReference; path = LICENSE; sourceTree = "<group>"; };
 		465B3573A47D5329161AF79D /* ScrollSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrollSession.swift; sourceTree = "<group>"; };
+		540F5932E39FB5DBCC0BECB5 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		6B6F4E78DA1DB3756AF85C13 /* Shortcuts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shortcuts.swift; sourceTree = "<group>"; };
 		89F110C9A331429C79E96918 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		8A9C3956E18D8B99714D6599 /* ScrollStitcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrollStitcher.swift; sourceTree = "<group>"; };
@@ -48,6 +50,17 @@
 		F567E8409416416AEBABF400 /* AppController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFrameworksBuildPhase section */
+		C044FE57304946665F8722CC /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				13DDCD58E7B9D5B8EE231316 /* Sparkle in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
 /* Begin PBXGroup section */
 		6F256CEFDA50F58DA5B9AA41 /* CodeShot */ = {
 			isa = PBXGroup;
@@ -58,6 +71,7 @@
 				0261185EB6831B54ABCB501C /* CaptureNote.swift */,
 				F4FAF82AA6B199E08FF0CD23 /* CaptureOverlays.swift */,
 				C35E8A2DDF0E360E617DF57B /* CaptureSource.swift */,
+				540F5932E39FB5DBCC0BECB5 /* Info.plist */,
 				B51102353182A368F6E48534 /* PermissionGuide.swift */,
 				E51A4C3F4DDE62E39A8013BB /* RegionPicker.swift */,
 				465B3573A47D5329161AF79D /* ScrollSession.swift */,
@@ -105,6 +119,7 @@
 			buildPhases = (
 				2D19415635BDC8B0F486F24D /* Sources */,
 				FB6DFB2DA6061E85F32CEFA5 /* Resources */,
+				C044FE57304946665F8722CC /* Frameworks */,
 			);
 			buildRules = (
 			);
@@ -112,6 +127,7 @@
 			);
 			name = CodeShot;
 			packageProductDependencies = (
+				8C9B22340F6765FB442152D4 /* Sparkle */,
 			);
 			productName = CodeShot;
 			productReference = 374405C8EE54AAC5A0F92FC9 /* CodeShot.app */;
@@ -160,6 +176,9 @@
 			);
 			mainGroup = FFB9547D40048AF8804C4B1A;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				276F7F50501F7153299A2AD0 /* XCRemoteSwiftPackageReference "Sparkle" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = BEBB4E911D0B5642FFD515FC /* Products */;
 			projectDirPath = "";
@@ -289,15 +308,14 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 12;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
-				INFOPLIST_KEY_LSUIElement = YES;
+				CURRENT_PROJECT_VERSION = 13;
+				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = CodeShot/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.1.4;
+				MARKETING_VERSION = 0.1.5;
 				PRODUCT_BUNDLE_IDENTIFIER = com.brianrenshaw.CodeShot;
 				PRODUCT_NAME = CodeShot;
 				SDKROOT = macosx;
@@ -325,15 +343,14 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 12;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
-				INFOPLIST_KEY_LSUIElement = YES;
+				CURRENT_PROJECT_VERSION = 13;
+				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = CodeShot/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.1.4;
+				MARKETING_VERSION = 0.1.5;
 				PRODUCT_BUNDLE_IDENTIFIER = com.brianrenshaw.CodeShot;
 				PRODUCT_NAME = CodeShot;
 				SDKROOT = macosx;
@@ -446,6 +463,25 @@
 			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		276F7F50501F7153299A2AD0 /* XCRemoteSwiftPackageReference "Sparkle" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sparkle-project/Sparkle";
+			requirement = {
+				kind = exactVersion;
+				version = 2.10.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		8C9B22340F6765FB442152D4 /* Sparkle */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 276F7F50501F7153299A2AD0 /* XCRemoteSwiftPackageReference "Sparkle" */;
+			productName = Sparkle;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = A8B417911C81ED4051D070F7 /* Project object */;
 }
